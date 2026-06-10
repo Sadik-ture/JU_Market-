@@ -40,9 +40,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
-    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->middleware(['signed'])->name('verification.verify');
-    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware(['throttle:6,1'])->name('verification.send');
+    // Email verification routes (custom)
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed'])
+        ->name('verification.verify.custom');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
+        ->middleware(['throttle:6,1'])
+        ->name('verification.send');
 
     Route::get('/id-verification', [IDVerificationController::class, 'show'])->name('id-verification.show');
     Route::post('/id-verification/upload', [IDVerificationController::class, 'upload'])->name('id-verification.upload');
@@ -50,35 +54,32 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/profile/update-photo', [ProfileController::class, 'updatePhoto'])->name('profile.update-photo');
     Route::delete('/profile/remove-photo', [ProfileController::class, 'removePhoto'])->name('profile.remove-photo');
-
-});
-
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
-    // REMOVED DUPLICATE payment/history and payment/receipt from here
 });
 
 // ========== VERIFIED STUDENT ONLY (ID Approved) ==========
 Route::middleware(['auth', 'verified', 'verified.student'])->group(function () {
+    // Listing management
     Route::post('/listings', [ListingController::class, 'store'])->name('listings.store');
     Route::get('/listings/{listing}/edit', [ListingController::class, 'edit'])->name('listings.edit');
     Route::put('/listings/{listing}', [ListingController::class, 'update'])->name('listings.update');
     Route::delete('/listings/{listing}', [ListingController::class, 'destroy'])->name('listings.destroy');
     Route::post('/listings/{listing}/mark-as-sold', [ListingController::class, 'markAsSold'])->name('listings.markAsSold');
 
+    // Favorites
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/favorites/add/{listing}', [FavoriteController::class, 'add'])->name('favorites.add');
+    Route::delete('/favorites/remove/{listing}', [FavoriteController::class, 'remove'])->name('favorites.remove');
+    Route::post('/favorites/toggle/{listing}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
-    // ========== TRANSACTION HISTORY ==========
-    Route::get('/payment/history', [PaymentController::class, 'history'])->name('payment.history');
-    Route::get('/payment/receipt/{payment}', [PaymentController::class, 'receipt'])->name('payment.receipt');
-
-    // ========== PAYMENT ROUTES ==========
+    // Payment routes
     Route::get('/payment/{listing}', [PaymentController::class, 'show'])->name('payment.show');
     Route::post('/payment/initialize/{listing}', [PaymentController::class, 'initialize'])->name('payment.initialize');
     Route::match(['get', 'post'], '/payment/test/{listing}', [PaymentController::class, 'testMode'])->name('payment.test');
     Route::get('/payment/callback/{reference}', [PaymentController::class, 'callback'])->name('payment.callback');
     Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
     Route::get('/payment/return', [PaymentController::class, 'returnPage'])->name('payment.return');
+    
+    // Transaction history (defined once here)
     Route::get('/payment/history', [PaymentController::class, 'history'])->name('payment.history');
     Route::get('/payment/receipt/{payment}', [PaymentController::class, 'receipt'])->name('payment.receipt');
 
@@ -88,11 +89,6 @@ Route::middleware(['auth', 'verified', 'verified.student'])->group(function () {
     Route::get('/messages/start/{listing}', [MessageController::class, 'start'])->name('messages.start');
     Route::post('/messages/send/{conversation}', [MessageController::class, 'sendMessage'])->name('messages.send');
     Route::get('/messages/unread/count', [MessageController::class, 'unreadCount'])->name('messages.unread.count');
-
-    // Favorites
-    Route::post('/favorites/add/{listing}', [FavoriteController::class, 'add'])->name('favorites.add');
-    Route::delete('/favorites/remove/{listing}', [FavoriteController::class, 'remove'])->name('favorites.remove');
-    Route::post('/favorites/toggle/{listing}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
     // Ratings
     Route::get('/rating/create/{payment}', [RatingController::class, 'create'])->name('ratings.create');
@@ -106,15 +102,19 @@ Route::middleware(['auth', 'verified', 'verified.student'])->group(function () {
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/chart-data/{days}', [DashboardController::class, 'chartData'])->name('chart-data');
+    
     Route::get('/users', [UserController::class, 'index'])->name('users');
     Route::post('/users/{user}/toggle-suspend', [UserController::class, 'toggleSuspend'])->name('users.toggle-suspend');
     Route::post('/users/{user}/verify-seller', [UserController::class, 'verifySeller'])->name('users.verify-seller');
     Route::post('/users/{user}/make-admin', [UserController::class, 'makeAdmin'])->name('users.make-admin');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    
     Route::get('/listings', [AdminListingController::class, 'index'])->name('listings');
     Route::post('/listings/{listing}/status', [AdminListingController::class, 'updateStatus'])->name('listings.status');
     Route::delete('/listings/{listing}', [AdminListingController::class, 'destroy'])->name('listings.destroy');
+    
     Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments');
+    
     Route::get('/ratings', [AdminRatingController::class, 'index'])->name('ratings');
     Route::post('/ratings/{rating}/approve', [AdminRatingController::class, 'approve'])->name('ratings.approve');
     Route::delete('/ratings/{rating}', [AdminRatingController::class, 'destroy'])->name('ratings.destroy');
@@ -122,6 +122,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/ratings/bulk-delete', [AdminRatingController::class, 'bulkDelete'])->name('ratings.bulk-delete');
     Route::get('/ratings/{rating}', [AdminRatingController::class, 'show'])->name('ratings.show');
     Route::get('/top-sellers', [AdminRatingController::class, 'topSellers'])->name('top-sellers');
+    
     Route::get('/pending-ids', [UserController::class, 'pendingVerifications'])->name('pending-ids');
     Route::post('/users/{user}/approve-id', [UserController::class, 'approveId'])->name('users.approve-id');
     Route::post('/users/{user}/reject-id', [UserController::class, 'rejectId'])->name('users.reject-id');

@@ -2862,8 +2862,17 @@ CHAPA_PUBLIC_KEY=CHAPUBK_TEST-UHkHWlbNsWGQdNJZ0FL3Mt4Nq6iJAdUX
 VITE_APP_NAME="${APP_NAME}"
 
 
+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
 
 
+host name = dpg-d8krcql7vvec73biaiog-a
+port = 5432
+Database = campustrade_db_rais
+username = campustrade_user
+password = tCqwWLLUfNH9Sh6IL40Ao2DNkm22e6Yb
+INDBURL ==  postgresql://campustrade_user:tCqwWLLUfNH9Sh6IL40Ao2DNkm22e6Yb@dpg-d8krcql7vvec73biaiog-a/campustrade_db_rais
+EXTDBURL ==  postgresql://campustrade_user:tCqwWLLUfNH9Sh6IL40Ao2DNkm22e6Yb@dpg-d8krcql7vvec73biaiog-a.frankfurt-postgres.render.com/campustrade_db_rais
+PSQL command == PGPASSWORD=tCqwWLLUfNH9Sh6IL40Ao2DNkm22e6Yb psql -h dpg-d8krcql7vvec73biaiog-a.frankfurt-postgres.render.com -U campustrade_user campustrade_db_rais
 
 
 
