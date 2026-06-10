@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: campus-trade
+    runtime: image
+    repo: https://github.com/YOUR_USERNAME/campus-trade
+    plan: free
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://campus-trade.onrender.com
+      - key: SESSION_DRIVER
+        value: file
+      - key: LOG_CHANNEL
+        value: stack
