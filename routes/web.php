@@ -56,6 +56,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile/remove-photo', [ProfileController::class, 'removePhoto'])->name('profile.remove-photo');
 });
 
+ // Transaction history (defined once here)
+    Route::get('/payment/history', [PaymentController::class, 'history'])->name('payment.history');
+    Route::get('/payment/receipt/{payment}', [PaymentController::class, 'receipt'])->name('payment.receipt');
+
+
 // ========== VERIFIED STUDENT ONLY (ID Approved) ==========
 Route::middleware(['auth', 'verified', 'verified.student'])->group(function () {
     // Listing management
@@ -79,10 +84,7 @@ Route::middleware(['auth', 'verified', 'verified.student'])->group(function () {
     Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
     Route::get('/payment/return', [PaymentController::class, 'returnPage'])->name('payment.return');
     
-    // Transaction history (defined once here)
-    Route::get('/payment/history', [PaymentController::class, 'history'])->name('payment.history');
-    Route::get('/payment/receipt/{payment}', [PaymentController::class, 'receipt'])->name('payment.receipt');
-
+   
     // Messages
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/{conversation}', [MessageController::class, 'show'])->name('messages.show');
